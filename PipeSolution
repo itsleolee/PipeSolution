@@ -1,0 +1,76 @@
+import tkinter as tk
+from tkinter import simpledialog, messagebox
+from itertools import permutations
+
+class PipelineDialog(simpledialog.Dialog):
+    def body(self, master):
+        tk.Label(master, text="Input Code (e.g., GRBY):").grid(row=0)
+        tk.Label(master, text="Output Code (e.g., YBRG):").grid(row=1)
+        tk.Label(master, text="First Permutation (e.g., 2413) or leave blank:").grid(row=2)
+        tk.Label(master, text="Second Permutation (e.g., 2413) or leave blank:").grid(row=3)
+        tk.Label(master, text="Third Permutation (e.g., 1234) or leave blank:").grid(row=4)
+
+        self.e1 = tk.Entry(master)
+        self.e2 = tk.Entry(master)
+        self.e3 = tk.Entry(master)
+        self.e4 = tk.Entry(master)
+        self.e5 = tk.Entry(master)
+
+        self.e1.grid(row=0, column=1)
+        self.e2.grid(row=1, column=1)
+        self.e3.grid(row=2, column=1)
+        self.e4.grid(row=3, column=1)
+        self.e5.grid(row=4, column=1)
+
+        return self.e1  # initial focus
+
+    def apply(self):
+        self.result = {
+            "input_code": self.e1.get(),
+            "output_code": self.e2.get(),
+            "first_perm": self.e3.get(),
+            "second_perm": self.e4.get(),
+            "third_perm": self.e5.get()
+        }
+
+def find_missing_permutation(input_code, output_code, first_perm, third_perm):
+    all_perms = [''.join(p) for p in permutations('1234')]
+
+    def apply_permutation(code, perm):
+        return ''.join(code[int(p) - 1] for p in perm)
+
+    def find_permutation():
+        for perm in all_perms:
+            transformed = apply_permutation(input_code, first_perm)
+            transformed = apply_permutation(transformed, perm)
+            transformed = apply_permutation(transformed, third_perm)
+            if transformed == output_code:
+                return perm
+        return None
+
+    return find_permutation()
+
+def main():
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+
+    dialog = PipelineDialog(root)
+    input_code = dialog.result["input_code"]
+    output_code = dialog.result["output_code"]
+    first_perm = dialog.result["first_perm"]
+    second_perm = dialog.result["second_perm"]
+    third_perm = dialog.result["third_perm"]
+
+    missing_perm = None
+    if not first_perm:
+        missing_perm = find_missing_permutation(input_code, output_code, second_perm, third_perm)
+        messagebox.showinfo("Result", f"The missing first permutation is: {missing_perm}")
+    elif not second_perm:
+        missing_perm = find_missing_permutation(input_code, output_code, first_perm, third_perm)
+        messagebox.showinfo("Result", f"The missing second permutation is: {missing_perm}")
+    elif not third_perm:
+        missing_perm = find_missing_permutation(input_code, output_code, first_perm, second_perm)
+        messagebox.showinfo("Result", f"The missing third permutation is: {missing_perm}")
+
+if __name__ == "__main__":
+    main()
